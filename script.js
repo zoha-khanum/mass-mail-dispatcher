@@ -22,13 +22,15 @@ uploadBtn.addEventListener("click", function () {
         const emails = csvData
             .split(/\r?\n/)
             .map(email => email.trim())
-            .filter(email => email !== "" && email.toLowerCase() !== "email");
+            .filter(email =>
+                email !== "" &&
+                email.toLowerCase() !== "email"
+            );
 
         validEmailsList.innerHTML = "";
         invalidEmailsList.innerHTML = "";
 
-        const emailPattern =
-            /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
         emails.forEach(function (email) {
 
@@ -40,11 +42,16 @@ uploadBtn.addEventListener("click", function () {
             } else {
                 invalidEmailsList.appendChild(listItem);
             }
+
         });
+
     };
 
     reader.readAsText(file);
+
 });
+
+
 const sendBtn = document.getElementById("sendBtn");
 
 sendBtn.addEventListener("click", async function () {
@@ -67,23 +74,34 @@ sendBtn.addEventListener("click", async function () {
     }
 
     try {
-        const response = await fetch("https://mass-mail-dispatcher-ybjz.onrender.com/send-email", {, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                emails: validEmails,
-                subject: subject,
-                message: message
-            })
-        });
+
+        const response = await fetch(
+            "https://mass-mail-dispatcher-ybjz.onrender.com/send-email",
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    emails: validEmails,
+                    subject: subject,
+                    message: message
+                })
+            }
+        );
 
         const data = await response.json();
+
         alert(data.message);
 
-} catch (error) {
-    console.error(error);
-    alert("Unable to connect to the backend.");
-}
+    } catch (error) {
+
+        console.error(error);
+
+        alert("Unable to connect to the backend.");
+
+    }
+
 });
