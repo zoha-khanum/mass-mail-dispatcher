@@ -1,0 +1,64 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f6f8;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+h1 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+    font-size: 38px;
+}
+
+p {
+    color: #666;
+    margin-bottom: 30px;
+    font-size: 17px;
+}
+
+input[type="file"] {
+    background: white;
+    padding: 15px;
+    border: 2px dashed #3498db;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+button {
+    padding: 13px 25px;
+    background: #3498db;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-left: 10px;
+}
+
+button:hover {
+    background: #2980b9;
+}
+
+.results {
+    display: flex;
+    gap: 60px;
+    margin-top: 30px;
+}
+
+.results h2 {
+    margin-bottom: 10px;
+}
+
+.results ul {
+    line-height: 1.8;
+}
