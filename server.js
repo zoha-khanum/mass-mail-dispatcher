@@ -1,7 +1,6 @@
 require("dotenv").config();
 
 const express = require("express");
-const nodemailer = require("nodemailer");
 const cors = require("cors");
 
 const app = express();
@@ -14,62 +13,78 @@ const allowedOrigins = [
 
 app.use(cors({
     origin: function (origin, callback) {
-
         if (!origin || allowedOrigins.includes(origin)) {
             callback(null, true);
         } else {
             callback(new Error("Not allowed by CORS"));
         }
-
-    },
-
-    methods: ["GET", "POST", "OPTIONS"],
-
-    allowedHeaders: ["Content-Type"]
+    }
 }));
 
 app.use(express.json());
 
-
-const transporter = nodemailer.createTransport({
-
-    service: "gmail",
-
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    }
-
+app.get("/", (req, res) => {
+    res.send("Mass Mail Dispatcher backend is running.");
 });
-
 
 app.post("/send-email", async (req, res) => {
 
     const { emails, subject, message } = req.body;
 
     if (!emails || emails.length === 0 || !subject || !message) {
-
         return res.status(400).json({
             message: "Please provide emails, subject and message."
         });
-
     }
 
     try {
 
-        await transporter.sendMail({
+        const response = await fetch(
+            "https://api.brevo.com/v3/smtp/email",
+            {
+                method: "POST",
 
-            from: process.env.EMAIL_USER,
+                headers: {
+                    "accept": "application/json",
+                    "api-key": process.env.BREVO_API_KEY,
+                    "Content-Type": "application/json"
+                },
 
-            to: process.env.EMAIL_USER,
+                body: JSON.stringify({
 
-            bcc: emails,
+                    sender: {
+                        name: "Mass Mail Dispatcher",
+                        email: process.env.EMAIL_USER
+                    },
 
-            subject: subject,
+                    to: [
+                        {
+                            email: process.env.EMAIL_USER
+                        }
+                    ],
 
-            text: message
+                    bcc: emails.map(email => ({
+                        email: email
+                    })),
 
-        });
+                    subject: subject,
+
+                    textContent: message
+                })
+            }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            console.error("Brevo error:", data);
+
+            return res.status(response.status).json({
+                message: data.message || "Unable to send emails."
+            });
+        }
+
+        console.log("Brevo response:", data);
 
         res.json({
             message: "Emails sent successfully!"
@@ -77,17 +92,14 @@ app.post("/send-email", async (req, res) => {
 
     } catch (error) {
 
-        console.error(error);
+        console.error("Server error:", error);
 
         res.status(500).json({
-            message: "Error sending emails",
-            error: error.message
+            message: "Error sending emails."
         });
-
     }
 
 });
-
 
 const PORT = process.env.PORT || 3000;
 
