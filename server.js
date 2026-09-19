@@ -5,9 +5,6 @@ const cors = require("cors");
 
 const app = express();
 
-
-// -------------------- CORS --------------------
-
 const allowedOrigins = [
     "http://127.0.0.1:5500",
     "http://localhost:5500",
@@ -22,24 +19,50 @@ app.use(
             } else {
                 callback(new Error("Not allowed by CORS"));
             }
-        },
-        methods: ["GET", "POST", "OPTIONS"],
-        allowedHeaders: ["Content-Type"]
+        }
     })
 );
 
 app.use(express.json());
 
-
-// -------------------- HOME ROUTE --------------------
-
 app.get("/", (req, res) => {
-    res.status(200).send("Mass Mail Dispatcher backend is running.");
+    res.send("Mass Mail Dispatcher backend is running.");
 });
 
 
-// -------------------- SEND EMAIL --------------------
+// Get Gmail access token using refresh token
+async function getAccessToken() {
 
+    const response = await fetch(
+        "https://oauth2.googleapis.com/token",
+        {
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+
+            body: new URLSearchParams({
+                client_id: process.env.GMAIL_CLIENT_ID,
+                client_secret: process.env.GMAIL_CLIENT_SECRET,
+                refresh_token: process.env.GMAIL_REFRESH_TOKEN,
+                grant_type: "refresh_token"
+            })
+        }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        console.error("Token error:", data);
+        throw new Error("Could not get Gmail access token.");
+    }
+
+    return data.access_token;
+}
+
+
+// Send mail
 app.post("/send-email", async (req, res) => {
 
     const { emails, subject, message } = req.body;
@@ -55,71 +78,60 @@ app.post("/send-email", async (req, res) => {
         });
     }
 
-    if (!process.env.BREVO_API_KEY) {
-        console.error("BREVO_API_KEY is missing.");
-
-        return res.status(500).json({
-            message: "Brevo API key is not configured."
-        });
-    }
-
-    if (!process.env.EMAIL_USER) {
-        console.error("EMAIL_USER is missing.");
-
-        return res.status(500).json({
-            message: "Sender email is not configured."
-        });
-    }
-
     try {
 
-        const response = await fetch(
-            "https://api.brevo.com/v3/smtp/email",
+        const accessToken = await getAccessToken();
+
+        const emailContent = [
+            `From: Mass Mail Dispatcher <${process.env.EMAIL_USER}>`,
+            `To: ${process.env.EMAIL_USER}`,
+            `Bcc: ${emails.join(", ")}`,
+            `Subject: ${subject}`,
+            "MIME-Version: 1.0",
+            "Content-Type: text/plain; charset=UTF-8",
+            "",
+            message
+        ].join("\r\n");
+
+
+        const encodedMessage = Buffer
+            .from(emailContent)
+            .toString("base64")
+            .replace(/\+/g, "-")
+            .replace(/\//g, "_")
+            .replace(/=+$/, "");
+
+
+        const gmailResponse = await fetch(
+            "https://gmail.googleapis.com/gmail/v1/users/me/messages/send",
             {
                 method: "POST",
 
                 headers: {
-                    "accept": "application/json",
-                    "api-key": process.env.BREVO_API_KEY,
+                    "Authorization": `Bearer ${accessToken}`,
                     "Content-Type": "application/json"
                 },
 
                 body: JSON.stringify({
-
-                    sender: {
-                        name: "Mass Mail Dispatcher",
-                        email: process.env.EMAIL_USER
-                    },
-
-                    to: [
-                        {
-                            email: process.env.EMAIL_USER
-                        }
-                    ],
-
-                    bcc: emails.map((email) => ({
-                        email: email
-                    })),
-
-                    subject: subject,
-
-                    textContent: message
+                    raw: encodedMessage
                 })
             }
         );
 
-        const data = await response.json();
+        const data = await gmailResponse.json();
 
-        if (!response.ok) {
+        if (!gmailResponse.ok) {
 
-            console.error("Brevo API error:", data);
+            console.error("Gmail API error:", data);
 
-            return res.status(response.status).json({
-                message: data.message || "Unable to send emails."
+            return res.status(gmailResponse.status).json({
+                message:
+                    data?.error?.message ||
+                    "Unable to send emails."
             });
         }
 
-        console.log("Brevo email sent:", data);
+        console.log("Gmail API message sent:", data.id);
 
         return res.status(200).json({
             message: "Emails sent successfully!"
@@ -136,8 +148,6 @@ app.post("/send-email", async (req, res) => {
 
 });
 
-
-// -------------------- START SERVER --------------------
 
 const PORT = process.env.PORT || 10000;
 
