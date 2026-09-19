@@ -3,152 +3,38 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
     <title>Mass-Mail Dispatcher</title>
 
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+    <!-- Prevent favicon 404 error -->
+    <link rel="icon" href="data:,">
 
-        body {
-            font-family: Arial, sans-serif;
-            background: #f4f6f8;
-            min-height: 100vh;
-            padding: 60px 20px;
-        }
-
-        .container {
-            max-width: 900px;
-            margin: auto;
-            text-align: center;
-        }
-
-        h1 {
-            color: #2c3e50;
-            font-size: 38px;
-            margin-bottom: 12px;
-        }
-
-        .subtitle {
-            color: #666;
-            font-size: 17px;
-            margin-bottom: 30px;
-        }
-
-        .upload-box {
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            margin-bottom: 30px;
-        }
-
-        input[type="file"] {
-            padding: 12px;
-            border: 2px dashed #3498db;
-            border-radius: 8px;
-            background: #f8f9fa;
-        }
-
-        button {
-            padding: 13px 24px;
-            margin-left: 10px;
-            background: #3498db;
-            color: white;
-            border: none;
-            border-radius: 7px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background: #2980b9;
-        }
-
-        .results {
-            display: flex;
-            gap: 25px;
-            justify-content: center;
-        }
-
-        .result-box {
-            background: white;
-            width: 50%;
-            min-height: 180px;
-            padding: 25px;
-            border-radius: 12px;
-            text-align: left;
-        }
-
-        .result-box h2 {
-            color: #2c3e50;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-
-        ul {
-            padding-left: 25px;
-            line-height: 1.8;
-        }
-
-        @media (max-width: 650px) {
-            .results {
-                flex-direction: column;
-            }
-
-            .result-box {
-                width: 100%;
-            }
-
-            button {
-                margin: 15px 0 0;
-            }
-        }
-        .mail-box {
-    max-width: 900px;
-    margin: 30px auto;
-    background: white;
-    padding: 30px;
-    border-radius: 12px;
-    text-align: center;
-}
-
-.mail-box h2 {
-    color: #2c3e50;
-    margin-bottom: 20px;
-}
-
-.mail-box input,
-.mail-box textarea {
-    width: 100%;
-    padding: 14px;
-    margin-bottom: 15px;
-    border: 1px solid #ccc;
-    border-radius: 7px;
-    font-size: 16px;
-}
-
-.mail-box textarea {
-    resize: vertical;
-}
-
-#sendBtn {
-    margin: 0;
-}
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
     <div class="container">
 
+        <!-- ============================= -->
+        <!-- HEADER -->
+        <!-- ============================= -->
+
         <h1>Mass-Mail Dispatcher</h1>
 
         <p class="subtitle">
             Upload a CSV file containing email addresses
         </p>
+
+
+        <!-- ============================= -->
+        <!-- CSV UPLOAD -->
+        <!-- ============================= -->
 
         <div class="upload-box">
 
@@ -164,32 +50,75 @@
 
         </div>
 
+
+        <!-- ============================= -->
+        <!-- EMAIL RESULTS -->
+        <!-- ============================= -->
+
         <div class="results">
 
             <div class="result-box">
-                <h2>Valid Emails</h2>
+
+                <h2>
+                    Valid Emails
+                </h2>
+
                 <ul id="validEmails"></ul>
+
             </div>
 
+
             <div class="result-box">
-                <h2>Invalid Emails</h2>
+
+                <h2>
+                    Invalid Emails
+                </h2>
+
                 <ul id="invalidEmails"></ul>
+
             </div>
 
         </div>
 
+
+        <!-- ============================= -->
+        <!-- COMPOSE MAIL -->
+        <!-- ============================= -->
+
+        <div class="mail-box">
+
+            <h2>
+                Compose Mail
+            </h2>
+
+            <input
+                type="text"
+                id="subject"
+                placeholder="Enter Subject"
+                autocomplete="off"
+            >
+
+
+            <textarea
+                id="message"
+                placeholder="Enter your message"
+                rows="7"
+            ></textarea>
+
+
+            <button id="sendBtn">
+                Send Mail
+            </button>
+
+        </div>
+
     </div>
-<div class="mail-box">
-    <h2>Compose Mail</h2>
 
-    <input type="text" id="subject" placeholder="Enter Subject">
 
-    <textarea id="message"
-              placeholder="Enter your message"
-              rows="6"></textarea>
+    <!-- ============================= -->
+    <!-- JAVASCRIPT -->
+    <!-- ============================= -->
 
-    <button id="sendBtn">Send Mail</button>
-</div>
     <script src="script.js"></script>
 
 </body>
